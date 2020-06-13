@@ -1,0 +1,6 @@
+1) PowerShell 관리자 모드에서 아무리 해도 tensorboard 에러가 남
+
+1-1) tensorboard --logdir=./ -> dupicate plugin
+1-2) activate tensorflow -> 아예 못찾음
+
+그냥 jupyter notebook에서 폴더 눌러서 tensorboard를 사용할것
