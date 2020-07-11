@@ -2,17 +2,17 @@ import time
 import numpy as np
 epsilon = 0.0001
 
-def _m(x, y):
-    return np.matmul(x, y)
-
 def _t(x):
     return np.transpose(x)
 
+def _m(x, y):
+    return np.matmul(x, y)
+
 def sigmoid(z):
-	return 1 / 1 + np.exp(-z)
+	return 1 / (1 + np.exp(-z))
 
 def mean_squared_error(h, y):
-	return 0.5 * np.mean(np.square(h - y))
+	return 1 / 2 * np.mean(np.square(h - y))
 
 class Neuron:
     def __init__(self, W, b, a):
@@ -24,7 +24,7 @@ class Neuron:
         self.db = np.zeros_like(self.b)
 
     def __call__(self, x):
-        self.a(_m(_t(self.W), x) + self.b)
+        return self.a(_m(_t(self.W), x) + self.b)
 
 class DNN:
     def __init__(self, hidden_depth, input_num, hidden_num, output_num, activation = sigmoid):
@@ -32,14 +32,14 @@ class DNN:
             return np.random.normal(0.0, 0.01, (i, o)), np.zeros((o,))
         
         self.sequence = list()
-        W,b = init_var(input_num, hidden_num)
+        W, b = init_var(input_num, hidden_num)
         self.sequence.append(Neuron(W, b, activation))
 
         for _ in range(hidden_depth - 1):
-            W,b = init_var(hidden_num, hidden_num)
+            W, b = init_var(hidden_num, hidden_num)
             self.sequence.append(Neuron(W, b, activation))
 
-        W,b = init_var(hidden_num, output_num)
+        W, b = init_var(hidden_num, output_num)
         self.sequence.append(Neuron(W, b, activation))
 
     def __call__(self, x):
@@ -47,31 +47,31 @@ class DNN:
             x = layer(x)
         return x
 
-    def calc_gradient(self, x, y, loss):
+    def calc_gradient(self, x, y, loss_func):
         def get_new_sequence(layer_index, new_neuron):
             new_seq = list()
-            for id, layer in enumerate(self.sequence):
-                if id == layer_index:
+            for i, layer in enumerate(self.sequence):
+                if i == layer_index:
                     new_seq.append(new_neuron)
                 else:
                     new_seq.append(layer)
             return new_seq
 
         def eval_sequence(x, sequence):
-            for _ in sequence:
+            for layer in sequence:
                 x = layer(x)
-        return x
+            return x
         
-        loss = loss(self(x), y)
+        loss = loss_func(self(x), y)
         
         for id, layer in enumerate(self.sequence):
-            for w_i, w in enumerate(layer):
+            for w_i, w in enumerate(layer.W):
                 for w_j, ww in enumerate(w):
                     W = np.copy(layer.W)
                     W[w_i][w_j] = ww + epsilon
 
-                    new_neuron = Neuron(W, layer.b. layer.a)
-                    new_sequence = get_new_sequence(new_neuron)
+                    new_neuron = Neuron(W, layer.b, layer.a)
+                    new_sequence = get_new_sequence(id, new_neuron)
                     h = eval_sequence(x, new_sequence)
 
                     num_grad = (loss_func(h, y) - loss) / epsilon
@@ -82,7 +82,7 @@ class DNN:
                     b[b_i] = bb + epsilon
                     
                     new_neuron = Neuron(layer.W, b, layer.a)
-                    new_seq = get_new_sequence(layer_id, new_neuron)
+                    new_seq = get_new_sequence(id, new_neuron)
                     h = eval_sequence(x, new_seq)
                     
                     num_grad = (loss_func(h, y) - loss) / epsilon  # (f(x+eps) - f(x)) / epsilon
@@ -106,4 +106,4 @@ t = time.time()
 for epoch in range(100):
     loss = gradient_descent(dnn, x, y, mean_squared_error, 0.01)
     print('Epoch {}: Test loss {}'.format(epoch, loss))
-print('{} seconds elapsed.'.format(time.time() - t))
+print('{} seconds elapsed!.'.format(time.time() - t))
