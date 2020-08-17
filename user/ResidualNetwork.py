@@ -74,7 +74,7 @@ class ResNet(tf.keras.Model):
 @tf.function
 def train_step(model, images, labels, loss_object, optimizer, train_loss, train_accuracy):
     with tf.GradientTape() as tape:
-        predictions = model(images)
+        predictions = model(images, training=True)
         loss = loss_object(labels, predictions)
     gradients = tape.gradient(loss, model.trainable_variables)
 
@@ -85,7 +85,7 @@ def train_step(model, images, labels, loss_object, optimizer, train_loss, train_
 # Implement algorithm test
 @tf.function
 def test_step(model, images, labels, loss_object, test_loss, test_accuracy):
-    predictions = model(images)
+    predictions = model(images, training=False)
 
     t_loss = loss_object(labels, predictions)
     test_loss(t_loss)
